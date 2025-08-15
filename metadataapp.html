@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Metadata Generator für 3D-Objekte</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7f9fc;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #fafafa;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    input[type="text"], input[type="date"], select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    .btn-remove {
+      background-color: #e74c3c;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    .nested {
+      margin-left: 20px;
+      padding: 15px;
+      background: #f0f3f6;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+    .flex-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      margin-top: 10px;
+    }
+    .flex-row input {
+      flex: 1;
+    }
+    .checkbox-group {
+      margin: 10px 0;
+    }
+    .output {
+      margin-top: 30px;
+      padding: 15px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .license-info {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Metadata Generator für 3D-Objekte</h1>
+
+    <!-- Real Object Section -->
+    <div class="section">
+      <h2>Gegenstand (Real Object)</h2>
+      <label><input type="checkbox" id="ro_enabled"/> Informationen zum Gegenstand erfassen</label>
+      <div id="ro_fields" class="nested" style="display:none;">
+        <label>Beschreibung des Objekts
+          <input type="text" id="ro_description_value"/>
+        </label>
+        <label>URI des Objekttyps (optional)
+          <input type="text" id="ro_description_uri"/>
+        </label>
+
+        <label>Zustand des Objekts
+          <input type="text" id="ro_condition_value"/>
+        </label>
+        <label>URI des Zustands (optional)
+          <input type="text" id="ro_condition_uri"/>
+        </label>
+
+        <label>Sammlung
+          <select id="ro_collection">
+            <option value="">Manuell eingeben</option>
+            <option value="Q115755098|LEIZA">LEIZA</option>
+            <option value="project_internal|Project internal">Projektintern</option>
+          </select>
+        </label>
+        <div id="ro_collection_custom" style="display:none; margin-top:10px;">
+          <input type="text" id="ro_collection_custom_value" placeholder="Name der Sammlung"/>
+        </div>
+
+        <label>Datenbank
+          <select id="ro_database">
+            <option value="">Manuell eingeben</option>
+            <option value="easydb">easydb</option>
+            <option value="KUR">KUR</option>
+          </select>
+        </label>
+        <div id="ro_database_custom" style="display:none; margin-top:10px;">
+          <input type="text" id="ro_database_custom_value" placeholder="Name der Datenbank"/>
+        </div>
+
+        <label>Inventarnummer
+          <input type="text" id="ro_inventory_number"/>
+        </label>
+      </div>
+    </div>
+
+    <!-- Persons Section -->
+    <div class="section">
+      <h2>Personen (3D-Erstellung)</h2>
+      <label><input type="checkbox" id="persons_enabled"/> Personen hinzufügen</label>
+      <div id="persons_fields" class="nested" style="display:none;">
+        <div id="persons_list"></div>
+        <button type="button" id="add_person">+ Person hinzufügen</button>
+      </div>
+    </div>
+
+    <!-- Research Project Section -->
+    <div class="section">
+      <h2>Forschungsprojekt</h2>
+      <label><input type="checkbox" id="project_enabled"/> Projektinformationen hinzufügen</label>
+      <div id="project_fields" class="nested" style="display:none;">
+        <label>Förderung durch
+          <select id="funding">
+            <option value="">Manuell eingeben</option>
+            <option value="Q492234|Bundesministerium für Bildung und Forschung (BMBF)">BMBF</option>
+            <option value="DFG|Deutsche Forschungsgesellschaft (DFG)">DFG</option>
+          </select>
+        </label>
+        <div id="funding_custom" style="display:none; margin-top:10px;">
+          <input type="text" id="funding_custom_value" placeholder="Name der Institution"/>
+        </div>
+
+        <label>Forschungsprojektname (lang)
+          <input type="text" id="research_project_name"/>
+        </label>
+        <label>Forschungsprojektname (kurz)
+          <input type="text" id="research_project_short"/>
+        </label>
+
+        <label>Beschreibung des Projekts
+          <input type="text" id="project_description"/>
+        </label>
+
+        <div>
+          <label>Antragsteller hinzufügen?</label>
+          <div id="applicants_list"></div>
+          <button type="button" id="add_applicant">+ Antragsteller hinzufügen</button>
+        </div>
+
+        <h3>Projektzeitraum</h3>
+        <label>Startdatum (JJJJ-MM-TT oder nur Jahr)
+          <input type="text" id="project_start" placeholder="z.B. 2024 oder 2024-01-01"/>
+        </label>
+        <label>Enddatum (JJJJ-MM-TT oder nur Jahr)
+          <input type="text" id="project_end" placeholder="z.B. 2025 oder 2025-12-31"/>
+        </label>
+      </div>
+    </div>
+
+    <!-- License Section -->
+    <div class="section">
+      <h2>Lizenz</h2>
+      <label><input type="checkbox" id="license_enabled"/> Lizenzinformationen hinzufügen</label>
+      <div id="license_fields" class="nested" style="display:none;">
+        <label>Lizenz für 3D-Modell
+          <select id="license_3d">
+            <option value="">Manuell eingeben</option>
+            <option value="Q6938433|CC0 1.0">CC0 1.0</option>
+            <option value="Q6905323|CC BY 4.0">CC BY 4.0</option>
+            <option value="Q6905942|CC BY-SA 4.0">CC BY-SA 4.0</option>
+            <option value="Q6999319|CC BY-ND 4.0">CC BY-ND 4.0</option>
+            <option value="Q6936496|CC BY-NC 4.0">CC BY-NC 4.0</option>
+            <option value="Q6998997|CC BY-NC-SA 4.0">CC BY-NC-SA 4.0</option>
+            <option value="Q6937225|CC BY-NC-ND 4.0">CC BY-NC-ND 4.0</option>
+          </select>
+        </label>
+        <div id="license_3d_custom" style="display:none; margin-top:10px;">
+          <input type="text" id="license_3d_custom_value" placeholder="Lizenzwert (URI oder Text)"/>
+        </div>
+
+        <label>Urheberrecht
+          <select id="copyright">
+            <option value="">Manuell eingeben</option>
+            <option value="Q115755098|LEIZA">LEIZA</option>
+            <option value="Q88965529|i3mainz">i3mainz</option>
+          </select>
+        </label>
+        <div id="copyright_custom" style="display:none; margin-top:10px;">
+          <input type="text" id="copyright_custom_value" placeholder="Name des Urhebers"/>
+        </div>
+
+        <label>Rechteinhaber
+          <select id="rights_holder">
+            <option value="">Manuell eingeben</option>
+            <option value="Q115755098|LEIZA">LEIZA</option>
+            <option value="Q88965529|i3mainz">i3mainz</option>
+          </select>
+        </label>
+        <div id="rights_holder_custom" style="display:none; margin-top:10px;">
+          <input type="text" id="rights_holder_custom_value" placeholder="Name des Rechteinhabers"/>
+        </div>
+
+        <label>Lizenz für Metadaten
+          <select id="license_metadata">
+            <option value="">Manuell eingeben</option>
+            <option value="Q6938433|CC0 1.0">CC0 1.0</option>
+            <option value="Q6905323|CC BY 4.0">CC BY 4.0</option>
+            <option value="Q6905942|CC BY-SA 4.0">CC BY-SA 4.0</option>
+            <option value="Q6999319|CC BY-ND 4.0">CC BY-ND 4.0</option>
+            <option value="Q6936496|CC BY-NC 4.0">CC BY-NC 4.0</option>
+            <option value="Q6998997|CC BY-NC-SA 4.0">CC BY-NC-SA 4.0</option>
+            <option value="Q6937225|CC BY-NC-ND 4.0">CC BY-NC-ND 4.0</option>
+          </select>
+        </label>
+        <div id="license_metadata_custom" style="display:none; margin-top:10px;">
+          <input type="text" id="license_metadata_custom_value" placeholder="Lizenzwert für Metadaten"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Generate & Export -->
+    <div class="actions">
+      <button id="generate_json">JSON generieren</button>
+    </div>
+
+    <div class="output" id="json_output" style="display:none;"></div>
+    <div class="actions">
+      <button id="download_json" style="display:none;">JSON herunterladen</button>
+    </div>
+  </div>
+
+  <script>
+    // Helper: Create metadata object
+    function createMetadata(keyword, beschreibung, description, uri, value, label) {
+      const entry = {
+        from_application: "false",
+        value_type: typeof value === 'string' && value.startsWith("http") ? "uri" : typeof value
+      };
+      if (description) entry.key_eng = description;
+      if (beschreibung) entry.key_deu = beschreibung;
+      if (uri) entry.uri = uri;
+      if (value !== undefined && value !== null) entry.value = value;
+      if (label) entry.value_label = label;
+      return entry;
+    }
+
+    // Helper: Parse date input (year-only or full date)
+    function parseDateInput(str) {
+      if (!str) return null;
+      const year = parseInt(str, 10);
+      if (!isNaN(year) && str.length === 4) {
+        return new Date(year, 0, 1).toISOString().split('T')[0]; // Jan 1
+      }
+      const date = new Date(str);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+      return null;
+    }
+
+    // Handle dynamic fields visibility
+    document.getElementById('ro_enabled').addEventListener('change', e => {
+      document.getElementById('ro_fields').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('persons_enabled').addEventListener('change', e => {
+      document.getElementById('persons_fields').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('project_enabled').addEventListener('change', e => {
+      document.getElementById('project_fields').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('license_enabled').addEventListener('change', e => {
+      document.getElementById('license_fields').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    // Dynamic selects with custom input
+    function setupCustomInput(selectId, customDivId, customInputId) {
+      const select = document.getElementById(selectId);
+      const customDiv = document.getElementById(customDivId);
+      select.addEventListener('change', () => {
+        customDiv.style.display = select.value === "" ? 'block' : 'none';
+      });
+    }
+
+    setupCustomInput('ro_collection', 'ro_collection_custom', 'ro_collection_custom_value');
+    setupCustomInput('ro_database', 'ro_database_custom', 'ro_database_custom_value');
+    setupCustomInput('funding', 'funding_custom', 'funding_custom_value');
+    setupCustomInput('license_3d', 'license_3d_custom', 'license_3d_custom_value');
+    setupCustomInput('copyright', 'copyright_custom', 'copyright_custom_value');
+    setupCustomInput('rights_holder', 'rights_holder_custom', 'rights_holder_custom_value');
+    setupCustomInput('license_metadata', 'license_metadata_custom', 'license_metadata_custom_value');
+
+    // Persons: Add new person
+    let personCounter = 0;
+    document.getElementById('add_person').addEventListener('click', () => {
+      const container = document.createElement('div');
+      container.className = 'nested';
+      container.id = `person-${personCounter}`;
+      container.innerHTML = `
+        <label>Vorname
+          <input type="text" class="person_first_name"/>
+        </label>
+        <label>Nachname
+          <input type="text" class="person_surname"/>
+        </label>
+        <label>Angestellt bei
+          <select class="employed_by">
+            <option value="">Manuell eingeben</option>
+            <option value="Q115755098|LEIZA">LEIZA</option>
+            <option value="Q88965529|i3mainz">i3mainz</option>
+          </select>
+        </label>
+        <div class="employed_by_custom" style="display:none; margin-top:10px;">
+          <input type="text" class="employed_by_custom_value" placeholder="Institution"/>
+        </div>
+        <label>ORCID-iD
+          <input type="text" class="orcid_id"/>
+        </label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" class="responsible"> Verantwortliche Person</label>
+          <label><input type="checkbox" class="creator"> 3D-Ersteller</label>
+          <label><input type="checkbox" class="contributor"> Mitwirkender</label>
+        </div>
+        <button type="button" class="btn-remove remove_person">Entfernen</button>
+      `;
+      document.getElementById('persons_list').appendChild(container);
+
+      // Handle custom input for employment
+      const select = container.querySelector('.employed_by');
+      const custom = container.querySelector('.employed_by_custom');
+      select.addEventListener('change', () => {
+        custom.style.display = select.value === "" ? 'block' : 'none';
+      });
+
+      // Remove person
+      container.querySelector('.remove_person').addEventListener('click', () => {
+        container.remove();
+      });
+
+      personCounter++;
+    });
+
+    // Applicants
+    let applicantCounter = 0;
+    document.getElementById('add_applicant').addEventListener('click', () => {
+      const container = document.createElement('div');
+      container.className = 'flex-row';
+      container.innerHTML = `
+        <select class="applicant_select">
+          <option value="">Manuell eingeben</option>
+          <option value="Q115755098|LEIZA">LEIZA</option>
+          <option value="Q88965529|i3mainz">i3mainz</option>
+        </select>
+        <input type="text" class="applicant_custom" placeholder="Name der Institution" style="display:none;"/>
+        <button type="button" class="btn-remove remove_applicant">−</button>
+      `;
+      document.getElementById('applicants_list').appendChild(container);
+
+      const select = container.querySelector('.applicant_select');
+      const custom = container.querySelector('.applicant_custom');
+      select.addEventListener('change', () => {
+        custom.style.display = select.value === "" ? 'block' : 'none';
+      });
+
+      container.querySelector('.remove_applicant').addEventListener('click', () => {
+        container.remove();
+      });
+    });
+
+    // ORCID Auto-fill
+    function getOrcidForPerson(firstName, lastName) {
+      const orcidMap = {
+        'Anja Cramer': 'http://orcid.org/0000-0002-5232-1944',
+        'Laura Raddatz': 'http://orcid.org/0000-0001-7640-1247',
+        'Guido Heinz': 'http://orcid.org/0000-0003-2175-9908',
+        'Benjamin Streubel': 'http://orcid.org/0000-0002-5474-5572'
+      };
+      const key = `${firstName} ${lastName}`;
+      if (orcidMap[key]) {
+        console.log(`ORCID-iD von ${firstName} ${lastName}: ${orcidMap[key]}`);
+        return orcidMap[key];
+      }
+      return null;
+    }
+
+    // Generate JSON
+    document.getElementById('generate_json').addEventListener('click', () => {
+      const result = { projects: [] };
+      const project = { general: {} };
+
+      // Real Object
+      if (document.getElementById('ro_enabled').checked) {
+        const obj = {};
+        const descVal = document.getElementById('ro_description_value').value.trim();
+        const descUri = document.getElementById('ro_description_uri').value.trim();
+        if (descVal) {
+          const uri = descUri ? descUri.replace("www.wikidata.org/wiki/", "www.wikidata.org/entity/") : "http://www.wikidata.org/entity/Q337060";
+          obj.object = createMetadata('object', 'Gegenstand', 'object', uri, descVal, descUri ? null : null);
+        }
+
+        const condVal = document.getElementById('ro_condition_value').value.trim();
+        const condUri = document.getElementById('ro_condition_uri').value.trim();
+        if (condVal) {
+          const uri = condUri ? condUri.replace("www.wikidata.org/wiki/", "www.wikidata.org/entity/") : "http://www.wikidata.org/entity/Q813912";
+          obj.condition = createMetadata('condition', 'Zustand', 'object', uri, condVal);
+        }
+
+        const collSel = document.getElementById('ro_collection').value;
+        let collVal, collLabel;
+        if (collSel === "") {
+          collVal = document.getElementById('ro_collection_custom_value').value.trim() || "unknown";
+          collLabel = null;
+        } else {
+          [collVal, collLabel] = collSel.split('|');
+          collVal = collVal === "project_internal" ? "Project internal" : `http://www.wikidata.org/entity/${collVal}`;
+        }
+        if (collVal) {
+          obj.collection = createMetadata('collection', 'Sammlung', 'collection', 'http://www.wikidata.org/entity/Q2668072', collVal, collLabel);
+        }
+
+        const dbSel = document.getElementById('ro_database').value;
+        let dbVal = dbSel;
+        if (dbSel === "") {
+          dbVal = document.getElementById('ro_database_custom_value').value.trim();
+        }
+        if (dbVal) {
+          obj.database = createMetadata('database', 'Datenbank', 'database', 'http://www.wikidata.org/entity/P217', dbVal);
+        }
+
+        const invNum = document.getElementById('ro_inventory_number').value.trim() || "unknown";
+        obj.inventory_number = createMetadata('inventory_number', 'Inventarnummer', 'Inventory number', 'http://www.wikidata.org/entity/P217', invNum);
+
+        project.general.real_object = [obj];
+      }
+
+      // Persons
+      if (document.getElementById('persons_enabled').checked) {
+        const persons = document.querySelectorAll('#persons_list > div');
+        const responsible = [], contributors = [];
+        let creator = null;
+
+        persons.forEach(p => {
+          const firstName = p.querySelector('.person_first_name').value.trim() || 'Anonymus';
+          const lastName = p.querySelector('.person_surname').value.trim() || 'Anonymus';
+          const fullName = `${firstName} ${lastName}`;
+
+          const empSel = p.querySelector('.employed_by').value;
+          let empVal, empLabel = null;
+          if (empSel === "") {
+            empVal = p.querySelector('.employed_by_custom_value').value.trim();
+          } else {
+            [empVal, empLabel] = empSel.split('|');
+            empVal = `http://www.wikidata.org/entity/${empVal}`;
+          }
+
+          let orcid = p.querySelector('.orcid_id').value.trim();
+          if (!orcid) {
+            const autoOrcid = getOrcidForPerson(firstName, lastName);
+            if (autoOrcid) orcid = autoOrcid;
+          }
+
+          const personObj = {};
+          personObj.person_first_name = createMetadata('person_first_name', 'Vorname', 'first name', 'http://xmlns.com/foaf/0.1/givenName', firstName);
+          personObj.person_surname = createMetadata('person_surname', 'Nachname', 'surname', 'http://xmlns.com/foaf/0.1/familyName', lastName);
+          if (empVal) {
+            personObj.employed_by = createMetadata('employed_by', 'angestellt bei', 'employed by', 'http://www.wikidata.org/prop/direct/P108', empVal, empLabel);
+          }
+          if (orcid) {
+            personObj.orcid_id = createMetadata('orcid_id', 'ORCID-iD', 'ORCID-iD', 'http://www.wikidata.org/prop/direct/P496', orcid);
+          }
+
+          if (p.querySelector('.responsible').checked) responsible.push(personObj);
+          if (p.querySelector('.creator').checked) creator = personObj;
+          if (p.querySelector('.contributor').checked) contributors.push(personObj);
+        });
+
+        const prs = {};
+        if (responsible.length) prs.persons_responsible = responsible;
+        if (creator) prs['3d_creator'] = creator;
+        if (contributors.length) prs['3d_contributors'] = contributors;
+        project.general['3d_creation'] = prs;
+      }
+
+      // Research Project
+      if (document.getElementById('project_enabled').checked) {
+        const proj = {};
+
+        const fundSel = document.getElementById('funding').value;
+        if (fundSel) {
+          let fundVal, fundLabel = null;
+          if (fundSel === "") {
+            fundVal = document.getElementById('funding_custom_value').value.trim();
+          } else {
+            [fundVal, fundLabel] = fundSel.split('|');
+            fundVal = fundVal.startsWith('Q') ? `http://www.wikidata.org/entity/${fundVal}` : fundVal;
+          }
+          if (fundVal) {
+            proj.funding = createMetadata('funding', 'Finanzierung', 'funding', 'http://www.wikidata.org/entity/Q6055890', fundVal, fundLabel);
+          }
+        }
+
+        const projName = document.getElementById('research_project_name').value.trim();
+        const projShort = document.getElementById('research_project_short').value.trim();
+        if (projName) {
+          proj.research_project_name = createMetadata('research_project_name', 'Forschungsprojektname', 'research project name', 'http://www.w3.org/2000/01/rdf-schema#label', projName, projShort || null);
+        }
+
+        const desc = document.getElementById('project_description').value.trim();
+        if (desc && desc !== 'None') {
+          proj.description = createMetadata('description', 'Beschreibung', 'description', 'http://www.wikidata.org/entity/Q1200750', desc);
+        }
+
+        // Applicants
+        const applicantsEls = document.querySelectorAll('#applicants_list > div');
+        if (applicantsEls.length > 0) {
+          const apps = [];
+          applicantsEls.forEach(el => {
+            const sel = el.querySelector('.applicant_select').value;
+            let val, label = null;
+            if (sel === "") {
+              val = el.querySelector('.applicant_custom').value.trim();
+            } else {
+              [val, label] = sel.split('|');
+              val = `http://www.wikidata.org/entity/${val}`;
+            }
+            if (val) {
+              apps.push(createMetadata('institute', 'Institut', 'institute', 'None', val, label));
+            }
+          });
+          if (apps.length) proj.applicants = apps;
+        }
+
+        // Duration
+        const startStr = document.getElementById('project_start').value.trim();
+        const endStr = document.getElementById('project_end').value.trim();
+        const duration = {};
+        const start = parseDateInput(startStr);
+        const end = parseDateInput(endStr);
+        if (start) {
+          duration.project_start = createMetadata('project_start', 'Projektbeginn', 'project start', 'None', start);
+        }
+        if (end) {
+          duration.project_end = createMetadata('project_end', 'Projektende', 'project start', 'None', end);
+        }
+        if (Object.keys(duration).length > 0) {
+          proj.duration = duration;
+        }
+
+        project.general.research_project = proj;
+      }
+
+      // License
+      if (document.getElementById('license_enabled').checked) {
+        const license = {};
+
+        const lic3dSel = document.getElementById('license_3d').value;
+        if (lic3dSel) {
+          let val, label = null;
+          if (lic3dSel === "") {
+            val = document.getElementById('license_3d_custom_value').value.trim();
+          } else {
+            [val, label] = lic3dSel.split('|');
+            val = `http://www.wikidata.org/entity/${val}`;
+          }
+          if (val) {
+            license.license_3d_model = createMetadata('license_3d_model', 'Lizenz', 'license', 'http://www.wikidata.org/entity/Q79719', val, label);
+          }
+        }
+
+        const copySel = document.getElementById('copyright').value;
+        if (copySel) {
+          let val, label = null;
+          if (copySel === "") {
+            val = document.getElementById('copyright_custom_value').value.trim();
+          } else {
+            [val, label] = copySel.split('|');
+            val = `http://www.wikidata.org/entity/${val}`;
+          }
+          if (val) {
+            license.copyright = createMetadata('copyright', 'Urheber', 'copyright', 'http://www.wikidata.org/entity/Q1297822', val, label);
+          }
+        }
+
+        const rightsSel = document.getElementById('rights_holder').value;
+        if (rightsSel) {
+          let val, label = null;
+          if (rightsSel === "") {
+            val = document.getElementById('rights_holder_custom_value').value.trim();
+          } else {
+            [val, label] = rightsSel.split('|');
+            val = `http://www.wikidata.org/entity/${val}`;
+          }
+          if (val) {
+            license.rights_holder = createMetadata('rights_holder', 'Rechteinhaber', 'rights holder', 'http://dublincore.org/specifications/dublin-core/dcmi-terms/2020-01-20/rightsHolder', val, label);
+          }
+        }
+
+        const metaLicSel = document.getElementById('license_metadata').value;
+        if (metaLicSel) {
+          let val, label = null;
+          if (metaLicSel === "") {
+            val = document.getElementById('license_metadata_custom_value').value.trim();
+          } else {
+            [val, label] = metaLicSel.split('|');
+            val = `http://www.wikidata.org/entity/${val}`;
+          }
+          if (val) {
+            license.license_metadata = createMetadata('license_metadata', 'Lizenz', 'license', 'http://www.wikidata.org/entity/Q79719', val, label);
+          }
+        }
+
+        project.general.license = license;
+      }
+
+      if (Object.keys(project.general).length > 0) {
+        result.projects.push(project);
+      }
+
+      // Display JSON
+      const output = document.getElementById('json_output');
+      output.textContent = JSON.stringify(result, null, 2);
+      output.style.display = 'block';
+
+      document.getElementById('download_json').style.display = 'inline-block';
+    });
+
+    // Download JSON
+    document.getElementById('download_json').addEventListener('click', () => {
+      const data = document.getElementById('json_output').textContent;
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'manualmetadata.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
